@@ -324,7 +324,7 @@ def test_settings_example():
         with pytest.raises(RuntimeError):
             app.press("id:checkbox3")
 
-        # id:togglebutton enables id:checkbox3
+        # NOTE: id:togglebutton enables id:checkbox3
         app.press("id:togglebutton")
         app.press("id:checkbox3")
 
