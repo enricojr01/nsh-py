@@ -173,6 +173,28 @@ def test_widths():
     assert "flex-1" in b.props["class_"].split()
 
 
+def test_cell_class_by_value():
+    t = nsh.table(
+        [{"status": "Paid", "amount": 12}, {"status": "Pending", "amount": 5}],
+        cell_class={
+            "status": lambda value: "text-emerald-600" if value == "Paid" else "text-amber-600"
+        },
+    )
+    paid, pending = t.children[1:]
+    assert has_class(paid.children[0], "text-emerald-600")
+    assert has_class(pending.children[0], "text-amber-600")
+    assert not has_class(paid.children[1], "text-emerald-600")
+
+
+@pytest.mark.parametrize(
+    ("option", "value"),
+    [("widths", "w-48"), ("cell_class", lambda value: "text-rose-600")],
+)
+def test_unknown_column_option(option, value):
+    with pytest.raises(ValueError, match="no column 'missing'"):
+        nsh.table([{"a": 1}], **{option: {"missing": value}})
+
+
 def test_test_ids():
     t = nsh.table([{"a": 1}, {"a": 2}, {"a": 3}], max_rows=2, test_id="tbl")
     assert t.children[0].props["test_id"] == "tbl-header"

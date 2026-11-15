@@ -2,13 +2,14 @@
 
 from nsh._component import Component
 from nsh._core import __version__
+from nsh._dialog import alert_dialog
 from nsh._each import Each, each
 from nsh._element import Element
 from nsh._engine import Effect, Timer, call_soon, effect, set_interval, set_timeout
 from nsh._runtime import run
 from nsh._signals import Computed, Signal, computed, signal
 from nsh._window import Window, current_window, quit
-from nsh.components import badge, button, card, separator, skeleton, table
+from nsh.components import alert, badge, button, card, separator, skeleton, table
 from nsh.primitives import (
     checkbox,
     image,
@@ -20,8 +21,10 @@ from nsh.primitives import (
     tab,
     tabs,
     text,
+    video,
     view,
 )
+from nsh.primitives.video import Video, VideoInfo, VideoProgress
 
 __all__ = [
     "Component",
@@ -31,8 +34,13 @@ __all__ = [
     "Element",
     "Signal",
     "Timer",
+    "Video",
+    "VideoInfo",
+    "VideoProgress",
     "Window",
     "__version__",
+    "alert",
+    "alert_dialog",
     "badge",
     "button",
     "call_soon",
@@ -59,5 +67,6 @@ __all__ = [
     "table",
     "tabs",
     "text",
+    "video",
     "view",
 ]

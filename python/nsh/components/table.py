@@ -67,6 +67,7 @@ def table(
     max_rows: int | None = None,
     format: Format | Mapping[Any, Format] | None = None,  # noqa: A002
     widths: Mapping[Any, str] | None = None,
+    cell_class: Mapping[Any, Callable[[Any], str]] | None = None,
     class_: StrProp | None = None,
     test_id: str | None = None,
 ) -> Element:
@@ -101,6 +102,8 @@ def table(
     - `widths`: a Tailwind width class per column (`{"name": "w-48"}`);
       the others share the remaining width equally (`flex-1`), except
       index columns, which are `w-16`.
+    - `cell_class`: a function per column returning classes for each value
+      (`{"status": lambda v: "text-emerald-600" if v == "Paid" else "text-rose-600"}`).
     - `class_`: Tailwind classes added after the default look, so they win.
     - `test_id`: on the root; rows get `f"{test_id}-row-{i}"`, the header
       `f"{test_id}-header"` and the footer `f"{test_id}-more"`.
@@ -113,7 +116,7 @@ def table(
         nsh.table(df, format={"temp": "{:.1f}°"}, max_rows=100)
     """
     root_class = merge_class(ROOT_CLASS, class_)
-    opts = _Options(columns, index, header, striped, max_rows, format, widths, test_id)
+    opts = _Options(columns, index, header, striped, max_rows, format, widths, cell_class, test_id)
 
     if callable(data):
         # A region: made again when the signals `data()` reads change.
@@ -124,7 +127,17 @@ def table(
 class _Options:
     """What `table` was called with, handed to the render function."""
 
-    __slots__ = ("columns", "index", "header", "striped", "max_rows", "format", "widths", "test_id")
+    __slots__ = (
+        "columns",
+        "index",
+        "header",
+        "striped",
+        "max_rows",
+        "format",
+        "widths",
+        "cell_class",
+        "test_id",
+    )
 
     def __init__(self, *values: Any) -> None:
         for name, value in zip(self.__slots__, values, strict=False):
@@ -148,6 +161,10 @@ def _parts(data: Any, o: _Options) -> list[Child]:
     )
     formats = [_formatter(o.format, label) for label in labels]
     given = o.widths or {}
+    cell_classes = o.cell_class or {}
+    for column in (*given, *cell_classes):
+        if column not in labels and str(column) not in names:
+            raise ValueError(f"nsh.table: no column {column!r} (columns: {names})")
     widths = [
         given.get(label, given.get(name, INDEX_WIDTH if c < n_index else DEFAULT_WIDTH))
         for c, (label, name) in enumerate(zip(labels, names, strict=True))
@@ -160,6 +177,10 @@ def _parts(data: Any, o: _Options) -> list[Child]:
         if numeric[c]:
             parts.append(NUMBER_CLASS)
         return " ".join(parts)
+
+    def value_class(c: int, value: Any) -> str:
+        formatter = cell_classes.get(labels[c], cell_classes.get(names[c]))
+        return "" if formatter is None else formatter(value)
 
     out: list[Child] = []
     if o.header and labels:
@@ -183,7 +204,15 @@ def _parts(data: Any, o: _Options) -> list[Child]:
             view(
                 *(
                     text(
-                        _cell_text(value, formats[c]), class_=cell_class(CELL_CLASS, c, INDEX_CLASS)
+                        _cell_text(value, formats[c]),
+                        class_=" ".join(
+                            part
+                            for part in (
+                                cell_class(CELL_CLASS, c, INDEX_CLASS),
+                                value_class(c, value),
+                            )
+                            if part
+                        ),
                     )
                     for c, value in enumerate(row)
                 ),

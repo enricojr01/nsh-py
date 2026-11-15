@@ -48,6 +48,22 @@ def test_poll_example():
         assert rows.index("Rust") < rows.index("Python")  # 9 votes beat 8
 
 
+def test_video_example():
+    App = load_example("video")["App"]
+    with open(App) as app:
+        assert app.shows("loading · on_end 0×")
+        app.dispatch("player", "onLoad", duration=5.0, width=1280, height=720)
+        app.wait_for("text:on_load 1280 × 720 · on_end 0×")
+        app.dispatch("player", "onProgress", currentTime=2.5, duration=5.0)
+        app.wait_for("text:on_progress 2.5 / 5.0 s")
+        app.press("Play")
+        app.wait_for("Pause")
+        app.press("seek(0)")
+        assert app.seeks("player") == [0.0]
+        app.dispatch("player", "onEnd")
+        app.wait_for("text:on_load 1280 × 720 · on_end 1×")
+
+
 def test_monitor_example():
     Monitor = load_example("monitor")["Monitor"]
     with open(Monitor) as app:
@@ -80,6 +96,19 @@ def test_tasks_example():
         app.wait_for("3 left")
         app.press("role:checkbox[Water the plants]")
         app.wait_for("2 left")
+
+
+def test_kanban_example():
+    Kanban = load_example("kanban")["Kanban"]
+    with open(Kanban, size=(900, 560)) as app:
+        assert app.shows("Buy milk") and app.texts().count("1 cards") == 3
+        app.press("id:right-1")
+        app.wait_for("0 cards")
+        app.wait_for("2 cards")
+        app.press("id:add")
+        app.wait_for("Card 4")
+        app.press("id:left-3")
+        app.wait_for("0 cards")
 
 
 def test_stopwatch_example():

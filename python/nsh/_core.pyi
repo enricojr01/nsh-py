@@ -32,6 +32,14 @@ def call_soon(func: Callable[..., Any], args: tuple[Any, ...] = ()) -> None:
 def app_active() -> bool:
     """Whether an app is starting or running: posted jobs will run (src/queue.rs)."""
 
+def alert_dialog(
+    title: str,
+    description: str | None,
+    actions: list[tuple[str, str, str]],
+    on_result: Callable[[str | None], Any] | None = None,
+) -> None:
+    """Show the native alert dialog and report its chosen action (src/alert_dialog.rs)."""
+
 def quit() -> None:  # noqa: A001
     """Quit the app; posted from other threads, nothing with no app (src/window.rs)."""
 
@@ -75,6 +83,12 @@ class Trigger:
     def track(self) -> None: ...
     def notify(self) -> bool: ...
 
+class VideoRef:
+    """The NSH element ref of a built video, for `seek` (src/elements/video.rs)."""
+
+    def __init__(self) -> None: ...
+    def seek(self, seconds: float) -> None: ...
+
 class Headless:
     """A headless app for tests (src/headless.rs); use nsh.testing."""
 
@@ -92,5 +106,9 @@ class Headless:
     def texts(self) -> list[str]: ...
     def shows(self, text: str) -> bool: ...
     def scroll(self, selector: str, distance: float) -> None: ...
+    def dispatch(
+        self, test_id: str, event: str, data: dict[str, float | bool | str] | None = None
+    ) -> None: ...
+    def seeks(self, test_id: str) -> list[float]: ...
     def window_state(self, window_id: str = "main") -> tuple[bool, bool, bool] | None: ...
     def close(self) -> None: ...

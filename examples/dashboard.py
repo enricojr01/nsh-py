@@ -185,6 +185,15 @@ def App():
             columns=["order", "customer", "product", "qty", "status", "total"],
             format={"total": "${:,.2f}"},
             widths={"order": "w-20", "qty": "w-12", "status": "w-24", "total": "w-24"},
+            cell_class={
+                "status": lambda value: (
+                    "text-emerald-600"
+                    if value == "Paid"
+                    else "text-amber-600"
+                    if value == "Pending"
+                    else "text-rose-600"
+                )
+            },
             max_rows=10,
         ),
         title="Recent orders",
